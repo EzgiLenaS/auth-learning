@@ -2,7 +2,7 @@ import {User} from "../models/user.model.js";
 import bcryptjs from "bcryptjs";
 import { generateVerificationCode } from "../utils/generateVerificationCode.js";
 import { generateTokenAndSetCookie } from "../utils/generateTokenAndSetCookie.js";
-import { sendVerificationEmail } from "../mailtrap/emails.js";
+import { sendVerificationEmail, sendWelcomeEmail } from "../mailtrap/emails.js";
 export const signup = async (req, res) => {
     const {email, password, name} = req.body;
     try {
@@ -53,6 +53,39 @@ export const signup = async (req, res) => {
     }
 };
 
+export const verifyEmail = async (req, res) => {
+    const {code} = req.body;
+    try {
+        const user = await User.findOne({
+            verificationToken: code,
+            verificationTokenExpiresAt: {$gt: Date.now()}
+        });
+
+        if(!user){
+            return res.status(400).json({success: false, message: "Invalid verification code"});
+        }
+
+        user.isVerified = true;
+        user.verificationToken = undefined;
+        user.verificationTokenExpiresAt = undefined;
+
+        await user.save();
+
+        await sendWelcomeEmail(user.email, user.name);
+
+        res.status(200).json({
+            success: true,
+            message: "Email verified successfully",
+            user: {
+                ...user._doc,
+                password: undefined,
+            },
+        });
+    } catch (error) {
+        console.log("Error in verifyEmail", error);
+        res.status(500).json({success: false, message: "Server error"});
+    }
+}
 export const login = async (req, res) => {
     res.send("Login")
 };
