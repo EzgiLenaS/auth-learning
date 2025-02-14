@@ -125,3 +125,12 @@ export const logout = async (req, res) => {
     // We used "token" as a key
     res.status(200).json({success: true, message: "Logged out successfully"});
 };
+
+export const forgotPassword = async (req, res) => {
+    const {email} = req.body;
+    try {
+        const user = await User.findOne({email});
+    } catch (error) {
+        
+    }
+}
