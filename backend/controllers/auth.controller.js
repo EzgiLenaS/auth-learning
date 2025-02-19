@@ -33,6 +33,10 @@ export const signup = async (req, res) => {
         // After creation we will send a verification code to their email
         // jwt
         generateTokenAndSetCookie(res, user._id);
+
+        // QUESTION!!!***************************************************
+        // Should not we open an if here for returning error just in case
+        // Like could not sending the email???
         await sendVerificationEmail(user.email, verificationToken);
 
         res.status(201).json({
