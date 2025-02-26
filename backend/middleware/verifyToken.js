@@ -5,10 +5,15 @@ export const verifyToken = (req, res, next) => {
     utils>generateTokenAndSetCookie.js. If we had written jwt (for example)
     instead of "token" over there then we would write cookies.jwt here too*/
     const token = req.cookies.token;
-    if(!token) return res.status(400).json({ success:false, message:"Unauthorized - no token provided"});
+    if(!token) return res.status(401).json({ success:false, message:"Unauthorized - no token provided"});
     try {
-        const decoded = jwt.verify();
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        if(!decoded) return res.status(401).json({ success:false, message:"Unauthorized - invalid token"});
+
+        req.userId = decoded.userId;
+        next();
     } catch (error) {
-        
+        console.log("Error in verifyToken", error);
+        res.status(500).json({ success:false, message:"Server Error"});
     }
 }
